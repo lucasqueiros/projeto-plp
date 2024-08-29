@@ -6,7 +6,7 @@ calcularNivelCliente = 3
 
 --vai receber o custo do sinistro e um inteiro do nivel do cliente e retorna o valor do desconto
 calcularDesconto :: Float -> Int -> Float
-calculaDesconto custoSinistro nivelCliente
+calcularDesconto custoSinistro nivelCliente
     | nivelCliente = 1 = custoSinistro
     | nivelCliente = 2 = custoSinistro * 0.1
     | nivelCliente = 3 = custoSinistro * 0.15
@@ -28,7 +28,10 @@ calcularValorDescontado custoSinistro nivelCliente
 limparTela :: String
 limparTela = ""
 
---simula o seguro baseado em atributos do cliente
+simularSeguro :: String -> String
+simularSeguro seguro = "não sei"
+
+--simula o risco do seguro baseado em atributos do cliente
 --recebe idade, estado civil e sexo.
 simularRisco :: Int -> String -> String -> Float
 simularRisco idade estadoCivil sexo =
