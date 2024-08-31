@@ -13,12 +13,14 @@ data Cliente = Cliente {
     statusFinanceiro :: Bool --true se tiver em dia com o pagamento
     numSinistros :: Int
     tipoAutomovel :: String
+    veiculo :: Automovel
 } deriving (Show, Eq)
 
 data Seguro = Seguro {
     idSeguro :: String
     cpfCliente :: String
     automovel :: String
+    tipoAutomovel :: String
     tipoContrato :: String --basico, tradicional ou premium
 } deriving (Show, Eq)
 
