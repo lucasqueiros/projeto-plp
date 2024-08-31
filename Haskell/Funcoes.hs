@@ -28,8 +28,13 @@ calcularValorDescontado custoSinistro nivelCliente
 limparTela :: String
 limparTela = ""
 
-simularSeguro :: String -> String
-simularSeguro seguro = "não sei"
+-- Recebe na seguinte ordem, tipo do seguro (basico, intermediario ou premium), idade, estado civil e sexo.
+simularSeguro :: String -> Int -> String -> String -> String
+simularSeguro tipoSeguro idade estadoCivil sexo
+    | tipoSeguro == "basico" = "O valor do seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (200 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
+    | tipoSeguro == "intermediario" = "O valor do seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (300 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
+    | tipoSeguro == "premium" = "O valor do seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (500 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
+    | otherwise = "Tipo de seguro inválido."
 
 --simula o risco do seguro baseado em atributos do cliente
 --recebe idade, estado civil e sexo.
@@ -49,7 +54,7 @@ estadoCivilRisco :: String -> Float
 estadoCivilRisco estadoCivil
     | estadoCivil == "Solteiro" = 1.025  -- Solteiro - 2.5% mais caro
     | estadoCivil == "Casado"   = 1.00   -- Casado - nenhum ajuste
-    | otherwise                 = 1.00   -- Nenhum ajuste para outros casos
+    | otherwise = 1.00   -- Nenhum ajuste para outros casos
 
 --Funcao auxiliar para calcular o ajuste de risco baseado no sexo
 sexoRisco :: String -> Float
@@ -58,4 +63,4 @@ sexoRisco sexo
     | sexo == "Mulher" = 1.00  -- Mulher - nenhum ajuste
     | sexo == "H"  = 1.05  -- Homem - 5% mais caro
     | sexo == "M" = 1.00  -- Mulher - nenhum ajuste
-    | otherwise        = 1.00  -- Nenhum ajuste para outros casos
+    | otherwise = 1.00  -- Nenhum ajuste para outros casos
