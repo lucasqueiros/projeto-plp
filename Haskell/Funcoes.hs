@@ -287,3 +287,27 @@ limparTela = ""
 --simula o seguro baseado em atributos do cliente
 simularSeguro :: String -> String -> String
 simularSeguro = ""
+
+--cadastrarSinistro
+cadastrarSinistro :: String -> String -> String -> String -> Float -> String -> IO ()
+cadastrarSinistro idS cpfS idSegS nivelA custoS dataS = do
+    let sinistro = Sinistro idS cpfS idSegS nivelA custoS dataS True
+    appendFile "dados/sinistros.txt" (show sinistro ++ "\n")
+    putStrLn "Sinistro cadastrado com sucesso."
+
+--encerrarSinistro
+encerrarSinistro :: String -> IO ()
+encerrarSinistro idS = do
+    conteudo <- readFile "dados/sinistros.txt"
+    let sinistros = map read (lines conteudo) :: [Sinistro]
+        sinistrosAtualizados = map (\s -> if idSinistro s == idS then s {ativo = False} else s) sinistros
+    writeFile "dados/sinistros.txt" (unlines (map show sinistrosAtualizados))
+    putStrLn "Sinistro encerrado com sucesso."
+
+--listarSinistro
+listarSinistrosAtivos :: IO ()
+listarSinistrosAtivos = do
+    conteudo <- readFile "dados/sinistros.txt"
+    let sinistros = map read (lines conteudo) :: [Sinistro]
+        sinistrosAtivos = filter ativo sinistros
+    mapM_ (putStrLn . show) sinistrosAtivos

@@ -9,7 +9,7 @@ data Cliente = Cliente {
     estadoCivil :: String
     nivelDeRisco :: Float 
     telefone :: String
-    listaSeguros :: String -- é pra ser uma lista, nao sei como implementar ainda
+    listaSeguros :: [Seguro] -- é pra ser uma lista, nao sei como implementar ainda
     statusFinanceiro :: Bool --true se tiver em dia com o pagamento
     numSinistros :: Int
     tipoAutomovel :: String
