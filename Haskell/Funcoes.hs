@@ -1,4 +1,5 @@
 module Funcoes where
+import Data.Char (toLower)
 
 -- vai pegar todos os atributos necessarios e retornar um inteiro de 1 a 5
 calcularNivelCliente :: Int -> String -> Int --esse input Int e String eh um exemplo
@@ -31,10 +32,13 @@ limparTela = ""
 -- Recebe na seguinte ordem, tipo do seguro (basico, intermediario ou premium), idade, estado civil e sexo.
 simularSeguro :: String -> Int -> String -> String -> String
 simularSeguro tipoSeguro idade estadoCivil sexo
-    | tipoSeguro == "basico" = "O valor do seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (200 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
-    | tipoSeguro == "intermediario" = "O valor do seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (300 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
-    | tipoSeguro == "premium" = "O valor do seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (500 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
+    | tipoSeguroNormalizado == "basico" = "O seu seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (200 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
+    | tipoSeguroNormalizado == "intermediario" = "O seu seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (300 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
+    | tipoSeguroNormalizado == "premium" = "O seu seguro (" ++ tipoSeguro ++ ") fica por um valor de " ++ show (500 * simularRisco idade estadoCivil sexo) ++ " mensalmente."
     | otherwise = "Tipo de seguro inválido."
+  where
+    tipoSeguroNormalizado = map toLower tipoSeguro
+
 
 --simula o risco do seguro baseado em atributos do cliente
 --recebe idade, estado civil e sexo.
@@ -52,15 +56,17 @@ idadeRisco idade
 --Funcao auxiliar para calcular o ajuste de risco baseado no estado civil
 estadoCivilRisco :: String -> Float
 estadoCivilRisco estadoCivil
-    | estadoCivil == "Solteiro" = 1.025  -- Solteiro - 2.5% mais caro
-    | estadoCivil == "Casado"   = 1.00   -- Casado - nenhum ajuste
+    | estadoCivilNormalizado == "solteiro" = 1.025  -- Solteiro - 2.5% mais caro
+    | estadoCivilNormalizado == "casado"   = 1.00   -- Casado - nenhum ajuste
     | otherwise = 1.00   -- Nenhum ajuste para outros casos
+  where
+    estadoCivilNormalizado = map toLower estadoCivil
 
 --Funcao auxiliar para calcular o ajuste de risco baseado no sexo
 sexoRisco :: String -> Float
 sexoRisco sexo
-    | sexo == "Homem"  = 1.05  -- Homem - 5% mais caro
-    | sexo == "Mulher" = 1.00  -- Mulher - nenhum ajuste
-    | sexo == "H"  = 1.05  -- Homem - 5% mais caro
-    | sexo == "M" = 1.00  -- Mulher - nenhum ajuste
+    | sexoNormalizado == "homem"  || sexoNormalizado == "h" = 1.05  -- Homem - 5% mais caro
+    | sexoNormalizado == "mulher" || sexoNormalizado == "m" = 1.00  -- Mulher - nenhum ajuste
     | otherwise = 1.00  -- Nenhum ajuste para outros casos
+  where
+    sexoNormalizado = map toLower sexo
