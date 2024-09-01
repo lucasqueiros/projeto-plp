@@ -103,7 +103,7 @@ editarClienteMain = do
                 "5" -> do
                     putStrLn "Digite o novo modelo do automóvel:"
                     novoModelo <- getLine
-                    let novoAutomovel = veiculo { modeloVeiculo = novoModelo }
+                    let novoAutomovel = Veiculo { modeloVeiculo = novoModelo }
                     return cliente { veiculoCliente = novoAutomovel }
                 "6" -> do
                     putStrLn "Digite o novo ano do automóvel:"
@@ -161,16 +161,16 @@ listarClientes = do
 -- Função auxiliar para formatar os dados de um cliente e seu automóvel em uma linha de tabela
 formatarCliente :: (Cliente, Veiculo) -> String
 formatarCliente (cliente, automovel) =
-    let nomeCliente = take 22 $ nome cliente ++ replicate 22 ' '
-        modeloCarro = take 18 $ modelo automovel ++ replicate 18 ' '
-        placaCarro = take 15 $ placa automovel ++ replicate 15 ' '
-        nivelClienteStr = take 10 $ show (nivelCliente cliente) ++ replicate 10 ' '
+    let nomeCliente = take 22 $ nomeCliente cliente ++ replicate 22 ' '
+        modeloCarro = take 18 $ modeloVeiculo veiculo ++ replicate 18 ' '
+        placaCarro = take 15 $ placaVeiculo veiculo ++ replicate 15 ' '
+        nivelClienteStr = take 10 $ show (nivelClienteCliente cliente) ++ replicate 10 ' '
     in "| " ++ nomeCliente ++ " | " ++ modeloCarro ++ " | " ++ placaCarro ++ " | " ++ nivelClienteStr ++ " |"
 
 -- Função que recebe todos os dados do cliente e instancia um tipo Cliente
 cadastrarCliente :: String -> String -> String -> String -> Int -> String -> Int -> String -> String -> Int -> (Cliente, Veiculo)
 cadastrarCliente nome' cpf' telefone' sexo' idade' modelo' ano' placa' tipoAutomovel' nivelCliente' =
-    let cliente = Cliente nome' cpf' telefone' sexo' idade' nivelCliente' (Automovel modelo' ano' placa' tipoAutomovel')
+    let cliente = Cliente nome' cpf' telefone' sexo' idade' nivelCliente' (Veiculo modelo' ano' placa' tipoAutomovel')
         automovel = veiculo cliente
     in (cliente, automovel)
 
@@ -184,13 +184,13 @@ salvarCliente cliente automovel = do
 
 -- Função para converter Cliente para String
 clienteToString :: Cliente -> String
-clienteToString (Cliente nome cpf telefone sexo idade _ _) =
+clienteToString (Cliente nomeCliente cpfCliente telefoneCliente sexoCliente idadeCliente _ _) =
     "Cliente {nome = \"" ++ nome ++ "\", cpf = \"" ++ cpf ++ "\", telefone = \"" ++ telefone ++ "\", sexo = \"" ++ sexo ++ "\", idade = " ++ show idade ++ "}"
 
 -- Função para converter Automovel para String
 automovelToString :: Veiculo -> String
 automovelToString (Veiculo modelo ano placa tipoAutomovelCliente) =
-    "Automovel {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", placa = \"" ++ placa ++ "\", tipoAutomovel = \"" ++ tipoAutomovel ++ "\"}"
+    "Automovel {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", placa = \"" ++ placa ++ "\", tipoVeiculo = \"" ++ tipoVeiculo ++ "\"}"
 
 -- Função para buscar cliente e automóvel por CPF e placa
 buscarClienteEAutomovel :: String -> String -> IO (Maybe Cliente, Maybe Veiculo)
@@ -200,7 +200,7 @@ buscarClienteEAutomovel cpfEntrada placaEntrada = do
         placaEntradaTrim = filter (/= ' ') placaEntrada
     let linhas = lines conteudo
         clienteAutomovel = map parseLine linhas
-        clienteEncontrado = find (\(cliente, automovel) -> filter (/= ' ') (cpf cliente) == cpfEntradaTrim || filter (/= ' ') (placa automovel) == placaEntradaTrim) clienteAutomovel
+        clienteEncontrado = find (\(cliente, automovel) -> filter (/= ' ') (cpfCliente cliente) == cpfEntradaTrim || filter (/= ' ') (placaVeiculo veiculo) == placaEntradaTrim) clienteAutomovel
     case clienteEncontrado of
         Just (cliente, automovel) -> return (Just cliente, Just automovel)
         Nothing -> return (Nothing, Nothing)
@@ -222,7 +222,7 @@ parseCliente str =
         telefone = removeQuotes $ extractValue "telefone" (campos !! 2)
         sexo = removeQuotes $ extractValue "sexo" (campos !! 3)
         idade = read $ extractValue "idade" (campos !! 4) :: Int
-    in Cliente nome cpf telefone sexo idade 2 (Automovel "" 0 "" "")
+    in Cliente nome cpf telefone sexo idade 2 (Veiculo "" 0 "" "")
 
 -- Função auxiliar que faz parsing manual do automóvel
 parseAutomovel :: String -> Veiculo
@@ -232,7 +232,7 @@ parseAutomovel str =
         ano = read $ extractValue "ano" (campos !! 1) :: Int
         placa = removeQuotes $ extractValue "placa" (campos !! 2)
         tipoAutomovel = removeQuotes $ extractValue "tipoAutomovel" (campos !! 3)
-    in Automovel modelo ano placa tipoAutomovel
+    in Veiculo modeloVeiculo anoVeiculo placaVeiculo tipoveiculo
 
 -- Função auxiliar para remover a parte "Cliente {...}" ou "Automovel {...}" e deixar apenas os valores internos
 removeWrapper :: String -> String -> String
@@ -250,7 +250,7 @@ extractValue campo str = drop (length campo + 4) str  -- Remove "campo = "
 criarSeguro :: Cliente -> Veiculo -> String -> Float -> IO Seguro
 criarSeguro cliente automovel tipoContrato valorSeguro = do
     dataAtual <- utctDay <$> getCurrentTime
-    let seguro = Seguro cliente automovel tipoContrato valorSeguro dataAtual
+    let seguro = Seguro cpfClienteSeguro automovelSeguro tipoContratoSeguro valorContratoSeguro dataAtual
     salvarSeguro seguro
     return seguro
 
@@ -277,11 +277,11 @@ split delim s = let (before, remainder) = span (/= delim) s
 -- Função responsável por calcular o nível do cliente, mas sem atualiza-lo no cliente   
 calcularNivelCliente :: Cliente -> Int
 calcularNivelCliente cliente
-        | not (statusFinanceiro cliente) = 1
+        | not (statusFinanceiroCliente cliente) = 1
         | otherwise = max 1 (min 5 (nivelBase - penalidade))
         where
-            nivelBase = 2 + (tempoFidelidade cliente `div` 6)
-            penalidade = numSinistros cliente `div` 2
+            nivelBase = 2 + (tempoFidelidadeCliente cliente `div` 6)
+            penalidade = numSinistrosCliente cliente `div` 2
 
 -- Função responsável por atualizar o nível do cliente (essa deve ser chamada)
 atualizarNivelCliente :: Cliente -> Cliente
@@ -324,7 +324,7 @@ encerrarSinistro :: String -> IO ()
 encerrarSinistro idS = do
     conteudo <- readFile "dados/sinistros.txt"
     let sinistros = map read (lines conteudo) :: [Sinistro]
-        sinistrosAtualizados = map (\s -> if idSinistro s == idS then s {ativo = False} else s) sinistros
+        sinistrosAtualizados = map (\s -> if idSinistroSinistro s == idS then s {ativoSinistro = False} else s) sinistros
     writeFile "dados/sinistros.txt" (unlines (map show sinistrosAtualizados))
     putStrLn "Sinistro encerrado com sucesso."
 
@@ -333,7 +333,7 @@ listarSinistrosAtivos :: IO ()
 listarSinistrosAtivos = do
     conteudo <- readFile "dados/sinistros.txt"
     let sinistros = map read (lines conteudo) :: [Sinistro]
-        sinistrosAtivos = filter ativo sinistros
+        sinistrosAtivos = filter ativoSinistro sinistros
     mapM_ (putStrLn . show) sinistrosAtivos
 
 -- Recebe na seguinte ordem, tipo do seguro (basico, intermediario ou premium), idade, estado civil e sexo.
@@ -391,31 +391,31 @@ pagamentoEmDia status =
 -- Função para formatar um Sinistro como uma String
 formatarSinistro :: Sinistro -> String
 formatarSinistro sinistro =
-    intercalate " | " [idSinistro sinistro, nivelAcidente sinistro, show (custo sinistro), dataSinistro sinistro] -- troquei 'data' por 'dataSinistro' pq tava dando conflito
+    intercalate " | " [idSinistroSinistro sinistro, nivelAcidenteSinistro sinistro, show (custoSinistro sinistro), dataSinistro sinistro] -- troquei 'data' por 'dataSinistro' pq tava dando conflito
 
 
 -- Função que gera um relatório com com informações acerca de um cliente registrado.
 gerarRelatorio :: Cliente -> [Sinistro] -> String
 gerarRelatorio cliente sinistros =
     let
-        seguro = listaSeguros cliente
+        seguro = listaSegurosCliente cliente
         -- Informações pessoais do cliente e de seu automóvel.
-        infoCliente = "Nome: " ++ nome cliente ++ "\n" ++
-                      "CPF: " ++ cpf cliente ++ "\n" ++
-                      "Telefone: " ++ telefone cliente ++ "\n" ++
-                      "Idade: " ++ show (idade cliente) ++ "\n" ++
-                      "Sexo: " ++ sexo cliente ++ "\n" ++
-                      "Estado Civíl: " ++ estadoCivil cliente ++ "\n"
+        infoCliente = "Nome: " ++ nomeCliente cliente ++ "\n" ++
+                      "CPF: " ++ cpfCliente cliente ++ "\n" ++
+                      "Telefone: " ++ telefoneCliente cliente ++ "\n" ++
+                      "Idade: " ++ show (idadeCliente cliente) ++ "\n" ++
+                      "Sexo: " ++ sexoCliente cliente ++ "\n" ++
+                      "Estado Civíl: " ++ estadoCivilCliente cliente ++ "\n"
 
         -- Detalhes do seguro do cliente.
         nivelcliente = nivelCliente cliente
-        infoNivel = "Nível de Cliente: " ++ show (nivelCliente cliente) ++ "\n" ++
-                    "Tipo de Contrato: " ++ tipoContrato seguro ++ "\n" ++
-                    "Status Financeiro: " ++ pagamentoEmDia (statusFinanceiro cliente) ++ "\n" ++
-                    "Tipo de automóvel: " ++ tipoAutomovel cliente ++ "\n"
+        infoNivel = "Nível de Cliente: " ++ show (nivelClienteCliente cliente) ++ "\n" ++
+                    "Tipo de Contrato: " ++ tipoContratoSeguro seguro ++ "\n" ++
+                    "Status Financeiro: " ++ pagamentoEmDia (statusFinanceiroCliente cliente) ++ "\n" ++
+                    "Tipo de automóvel: " ++ tipoAutomovelCliente cliente ++ "\n"
 
         -- Detalhes do histórico de sinistros
-        infoSinistros = "Sinistros Registrados: " ++ show (numSinistros cliente) ++ "\n" ++
+        infoSinistros = "Sinistros Registrados: " ++ show (numSinistrosCliente cliente) ++ "\n" ++
                         "Detalhes dos Sinistros: \n" ++ intercalate "\n" (map formatarSinistro sinistros)
     in
         -- Combinando as duas partes do relatório.

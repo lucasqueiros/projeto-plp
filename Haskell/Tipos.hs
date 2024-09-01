@@ -30,10 +30,12 @@ data Seguro = Seguro {
     cpfClienteSeguro :: String,
     automovelSeguro :: String,
     tipoAutomovelSeguro :: String,
-    tipoContratoSeguro :: String --basico, tradicional ou premium
+    tipoContratoSeguro :: String,
+    valorContratoSeguro :: Double --basico, tradicional ou premium
 } deriving (Show, Eq)
 
 data Sinistro = Sinistro {
+    ativoSinistro :: Bool,
     idSinistroSinistro :: String,
     cpfClienteSinistro :: String,
     idSeguroSinistro :: String,
