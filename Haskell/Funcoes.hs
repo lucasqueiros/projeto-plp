@@ -7,6 +7,7 @@ import Data.List (find, isInfixOf)
 import Data.Time (Day, getCurrentTime, utctDay, parseTimeOrError, defaultTimeLocale, toGregorian)
 import Data.Char (isDigit, isAlpha)
 import Data.Char (toLower)
+import Data.List (intercalate)
 
 -- Função para validar se a placa está no padrão Mercosul
 validarPlacaMercosul :: String -> Bool
@@ -102,7 +103,7 @@ editarClienteMain = do
                 "5" -> do
                     putStrLn "Digite o novo modelo do automóvel:"
                     novoModelo <- getLine
-                    let novoAutomovel = automovel { modeloAutomovel = novoModelo }
+                    let novoAutomovel = veiculo { modeloVeiculo = novoModelo }
                     return cliente { veiculoCliente = novoAutomovel }
                 "6" -> do
                     putStrLn "Digite o novo ano do automóvel:"
@@ -114,7 +115,7 @@ editarClienteMain = do
                     putStrLn "Digite a nova placa do automóvel:"
                     novaPlaca <- solicitarPlacaMercosul
                     let novoAutomovel = automovel { placaVeiculo = novaPlaca }
-                    return cliente { veiculo = novoAutomovel }
+                    return cliente { veiculoCliente = novoAutomovel }
                 "8" -> do
                     putStrLn "Digite o novo tipo de veículo (Carro ou Moto):"
                     novoTipoAutomovel <- getLine
@@ -158,7 +159,7 @@ listarClientes = do
     putStrLn "==================================================================================="
 
 -- Função auxiliar para formatar os dados de um cliente e seu automóvel em uma linha de tabela
-formatarCliente :: (Cliente, Automovel) -> String
+formatarCliente :: (Cliente, Veiculo) -> String
 formatarCliente (cliente, automovel) =
     let nomeCliente = take 22 $ nome cliente ++ replicate 22 ' '
         modeloCarro = take 18 $ modelo automovel ++ replicate 18 ' '
@@ -167,14 +168,14 @@ formatarCliente (cliente, automovel) =
     in "| " ++ nomeCliente ++ " | " ++ modeloCarro ++ " | " ++ placaCarro ++ " | " ++ nivelClienteStr ++ " |"
 
 -- Função que recebe todos os dados do cliente e instancia um tipo Cliente
-cadastrarCliente :: String -> String -> String -> String -> Int -> String -> Int -> String -> String -> Int -> (Cliente, Automovel)
+cadastrarCliente :: String -> String -> String -> String -> Int -> String -> Int -> String -> String -> Int -> (Cliente, Veiculo)
 cadastrarCliente nome' cpf' telefone' sexo' idade' modelo' ano' placa' tipoAutomovel' nivelCliente' =
     let cliente = Cliente nome' cpf' telefone' sexo' idade' nivelCliente' (Automovel modelo' ano' placa' tipoAutomovel')
         automovel = veiculo cliente
     in (cliente, automovel)
 
 -- Função para salvar o cliente em um arquivo de texto
-salvarCliente :: Cliente -> Automovel -> IO ()
+salvarCliente :: Cliente -> Veiculo -> IO ()
 salvarCliente cliente automovel = do
     let clienteStr = clienteToString cliente
     let automovelStr = automovelToString automovel
@@ -187,12 +188,12 @@ clienteToString (Cliente nome cpf telefone sexo idade _ _) =
     "Cliente {nome = \"" ++ nome ++ "\", cpf = \"" ++ cpf ++ "\", telefone = \"" ++ telefone ++ "\", sexo = \"" ++ sexo ++ "\", idade = " ++ show idade ++ "}"
 
 -- Função para converter Automovel para String
-automovelToString :: Automovel -> String
-automovelToString (Automovel modelo ano placa tipoAutomovel) =
+automovelToString :: Veiculo -> String
+automovelToString (Veiculo modelo ano placa tipoAutomovelCliente) =
     "Automovel {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", placa = \"" ++ placa ++ "\", tipoAutomovel = \"" ++ tipoAutomovel ++ "\"}"
 
 -- Função para buscar cliente e automóvel por CPF e placa
-buscarClienteEAutomovel :: String -> String -> IO (Maybe Cliente, Maybe Automovel)
+buscarClienteEAutomovel :: String -> String -> IO (Maybe Cliente, Maybe Veiculo)
 buscarClienteEAutomovel cpfEntrada placaEntrada = do
     conteudo <- readFile "dados/clientes.txt"
     let cpfEntradaTrim = filter (/= ' ') cpfEntrada
@@ -205,7 +206,7 @@ buscarClienteEAutomovel cpfEntrada placaEntrada = do
         Nothing -> return (Nothing, Nothing)
 
 -- Função para ler uma linha e converter para Cliente e Automovel
-parseLine :: String -> (Cliente, Automovel)
+parseLine :: String -> (Cliente, Veiculo)
 parseLine linha = 
     let (clienteStr, automovelStr) = break (== '|') linha
         cliente = parseCliente (init clienteStr)
@@ -224,7 +225,7 @@ parseCliente str =
     in Cliente nome cpf telefone sexo idade 2 (Automovel "" 0 "" "")
 
 -- Função auxiliar que faz parsing manual do automóvel
-parseAutomovel :: String -> Automovel
+parseAutomovel :: String -> Veiculo
 parseAutomovel str =
     let campos = split ',' (removeWrapper "Automovel" str)
         modelo = removeQuotes $ extractValue "modelo" (campos !! 0)
@@ -246,7 +247,7 @@ extractValue :: String -> String -> String
 extractValue campo str = drop (length campo + 4) str  -- Remove "campo = "
 
 -- Função para criar um seguro e salvar no arquivo
-criarSeguro :: Cliente -> Automovel -> String -> Float -> IO Seguro
+criarSeguro :: Cliente -> Veiculo -> String -> Float -> IO Seguro
 criarSeguro cliente automovel tipoContrato valorSeguro = do
     dataAtual <- utctDay <$> getCurrentTime
     let seguro = Seguro cliente automovel tipoContrato valorSeguro dataAtual
@@ -284,7 +285,7 @@ calcularNivelCliente cliente
 
 -- Função responsável por atualizar o nível do cliente (essa deve ser chamada)
 atualizarNivelCliente :: Cliente -> Cliente
-atualizarNivelCliente cliente = cliente { nivel = calcularNivelCliente cliente }
+atualizarNivelCliente cliente = cliente { nivelCliente = calcularNivelCliente cliente }
 
 --vai receber o custo do sinistro e um inteiro do nivel do cliente e retorna o valor do desconto
 calcularDesconto :: Float -> Int -> Float
@@ -379,8 +380,6 @@ sexoRisco sexo
 
 
 --arquivos funcoes2
-import Data.List (intercalate)
-module Funcoes where
 
 -- Função que Verifica o Status Financeiro do Seguro
 pagamentoEmDia :: Bool -> String 
