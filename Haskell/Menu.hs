@@ -1,4 +1,5 @@
 module Menu (menu) where
+import Main
 
 --Modulo com todos os menus de interação com o usuario
 
@@ -63,9 +64,9 @@ crudCliente = do
     putStrLn "0. Voltar"
     opcao <- getLine
     case opcao of
-        "1" -> putStrLn "teste" --chama funcao
-        "2" -> putStrLn "teste" --chama funcao
-        "3" -> putStrLn "teste" --chama funcao
+        "1" -> putStrLn cadastrarClienteMain --chama funcao
+        "2" -> putStrLn editarClienteMain --chama funcao
+        "3" -> putStrLn listarClientes --chama funcao
         "4" -> putStrLn "teste" --chama funcao
         "0" -> menu
 
