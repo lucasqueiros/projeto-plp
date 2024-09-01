@@ -407,10 +407,10 @@ gerarRelatorio cliente sinistros =
                       "Sexo: " ++ sexoCliente cliente ++ "\n" ++
                       "Estado Civíl: " ++ estadoCivilCliente cliente ++ "\n"
 
-        -- Detalhes do seguro do cliente.
+        -- Detalhes do seguro do cliente. 
         nivelcliente = nivelCliente cliente
         infoNivel = "Nível de Cliente: " ++ show (nivelClienteCliente cliente) ++ "\n" ++
-                    "Tipo de Contrato: " ++ tipoContratoSeguro seguro ++ "\n" ++
+                    "Tipo de Contrato: " ++ tipoContratoSeguro (head seguro) ++ "\n" ++
                     "Status Financeiro: " ++ pagamentoEmDia (statusFinanceiroCliente cliente) ++ "\n" ++
                     "Tipo de automóvel: " ++ tipoAutomovelCliente cliente ++ "\n"
 
