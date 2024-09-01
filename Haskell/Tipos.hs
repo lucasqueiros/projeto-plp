@@ -11,7 +11,9 @@ data Cliente = Cliente {
     telefone :: String
     listaSeguros :: [Seguro] -- é pra ser uma lista, nao sei como implementar ainda
     statusFinanceiro :: Bool --true se tiver em dia com o pagamento
+    tempoFidelidade :: Int -- em meses
     numSinistros :: Int
+    nivel :: Int
     tipoAutomovel :: String
     veiculo :: Automovel
 } deriving (Show, Eq)

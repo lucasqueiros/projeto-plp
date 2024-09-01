@@ -273,9 +273,18 @@ split delim s = let (before, remainder) = span (/= delim) s
                                 [] -> []
                                 x -> split delim (tail x)
 
--- vai pegar todos os atributos necessarios e retornar um inteiro de 1 a 5
-calcularNivelCliente :: Int -> String -> Int --esse input Int e String eh um exemplo
-calcularNivelCliente = 3
+-- Função responsável por calcular o nível do cliente, mas sem atualiza-lo no cliente   
+calcularNivelCliente :: Cliente -> Int
+calcularNivelCliente cliente
+        | not (statusFinanceiro cliente) = 1
+        | otherwise = max 1 (min 5 (nivelBase - penalidade))
+        where
+            nivelBase = 2 + (tempoFidelidade cliente `div` 6)
+            penalidade = numSinistros cliente `div` 2
+
+-- Função responsável por atualizar o nível do cliente (essa deve ser chamada)
+atualizarNivelCliente :: Cliente -> Cliente
+atualizarNivelCliente cliente = cliente { nivel = calcularNivelCliente cliente }
 
 --vai receber o custo do sinistro e um inteiro do nivel do cliente e retorna o valor do desconto
 calcularDesconto :: Float -> Int -> Float
