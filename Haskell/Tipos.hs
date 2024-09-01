@@ -35,11 +35,11 @@ data Seguro = Seguro {
 } deriving (Show, Eq)
 
 data Sinistro = Sinistro {
-    ativoSinistro :: Bool,
     idSinistroSinistro :: String,
     cpfClienteSinistro :: String,
     idSeguroSinistro :: String,
     nivelAcidenteSinistro :: String, --leve, médio ou perca total
     custoSinistro :: Float, -- vai ser calculado com base em variaveis
-    dataSinistro :: String
+    dataSinistro :: String,
+    ativoSinistro :: Bool
 } deriving (Show, Eq)
