@@ -301,6 +301,7 @@ calcularValorDescontado custoSinistro nivelCliente
 limparTela :: String
 limparTela = ""
 
+
 --cadastrarSinistro
 cadastrarSinistro :: String -> String -> String -> String -> Float -> String -> IO ()
 cadastrarSinistro idS cpfS idSegS nivelA custoS dataS = do
@@ -366,4 +367,3 @@ sexoRisco sexo
     | otherwise = 1.00  -- Nenhum ajuste para outros casos
   where
     sexoNormalizado = map toLower sexo
-
