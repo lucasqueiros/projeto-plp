@@ -1,5 +1,5 @@
 module Menu (menu) where
-import Main
+
 
 --Modulo com todos os menus de interação com o usuario
 

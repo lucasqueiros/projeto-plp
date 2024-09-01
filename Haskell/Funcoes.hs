@@ -85,41 +85,41 @@ editarClienteMain = do
                 "1" -> do
                     putStrLn "Digite o novo nome:"
                     novoNome <- getLine
-                    return cliente { nome = novoNome }
+                    return cliente { nomeCliente = novoNome }
                 "2" -> do
                     novoTelefone <- solicitarTelefone
-                    return cliente { telefone = novoTelefone }
+                    return cliente { telefoneCliente = novoTelefone }
                 "3" -> do
                     putStrLn "Digite o novo sexo:"
                     novoSexo <- getLine
-                    return cliente { sexo = novoSexo }
+                    return cliente { sexoCliente = novoSexo }
                 "4" -> do
                     putStrLn "Digite a nova data de nascimento (formato: YYYY-MM-DD):"
                     novaDataStr <- getLine
                     let novaData = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" novaDataStr :: Day
                     novaIdade <- calcularIdade' novaData
-                    return cliente { idade = novaIdade }
+                    return cliente { idadeCliente = novaIdade }
                 "5" -> do
                     putStrLn "Digite o novo modelo do automóvel:"
                     novoModelo <- getLine
-                    let novoAutomovel = automovel { modelo = novoModelo }
-                    return cliente { veiculo = novoAutomovel }
+                    let novoAutomovel = automovel { modeloAutomovel = novoModelo }
+                    return cliente { veiculoCliente = novoAutomovel }
                 "6" -> do
                     putStrLn "Digite o novo ano do automóvel:"
                     novoAnoStr <- getLine
                     let novoAno = read novoAnoStr :: Int
-                    let novoAutomovel = automovel { ano = novoAno }
-                    return cliente { veiculo = novoAutomovel }
+                    let novoAutomovel = automovel { anoVeiculo = novoAno }
+                    return cliente { veiculoCliente = novoAutomovel }
                 "7" -> do
                     putStrLn "Digite a nova placa do automóvel:"
                     novaPlaca <- solicitarPlacaMercosul
-                    let novoAutomovel = automovel { placa = novaPlaca }
+                    let novoAutomovel = automovel { placaVeiculo = novaPlaca }
                     return cliente { veiculo = novoAutomovel }
                 "8" -> do
                     putStrLn "Digite o novo tipo de veículo (Carro ou Moto):"
                     novoTipoAutomovel <- getLine
-                    let novoAutomovel = automovel { tipoAutomovel = novoTipoAutomovel }
-                    return cliente { veiculo = novoAutomovel }
+                    let novoAutomovel = automovel { tipoVeiculo = novoTipoAutomovel }
+                    return cliente { veiculoCliente = novoAutomovel }
                 _ -> return cliente
 
             -- Atualiza o arquivo de clientes
@@ -376,3 +376,48 @@ sexoRisco sexo
     | otherwise = 1.00  -- Nenhum ajuste para outros casos
   where
     sexoNormalizado = map toLower sexo
+
+
+--arquivos funcoes2
+import Data.List (intercalate)
+module Funcoes where
+
+-- Função que Verifica o Status Financeiro do Seguro
+pagamentoEmDia :: Bool -> String 
+pagamentoEmDia status = 
+    if status
+        then "Em dia!"
+    else "Devendo!"
+
+-- Função para formatar um Sinistro como uma String
+formatarSinistro :: Sinistro -> String
+formatarSinistro sinistro =
+    intercalate " | " [idSinistro sinistro, nivelAcidente sinistro, show (custo sinistro), dataSinistro sinistro] -- troquei 'data' por 'dataSinistro' pq tava dando conflito
+
+
+-- Função que gera um relatório com com informações acerca de um cliente registrado.
+gerarRelatorio :: Cliente -> [Sinistro] -> String
+gerarRelatorio cliente sinistros =
+    let
+        seguro = listaSeguros cliente
+        -- Informações pessoais do cliente e de seu automóvel.
+        infoCliente = "Nome: " ++ nome cliente ++ "\n" ++
+                      "CPF: " ++ cpf cliente ++ "\n" ++
+                      "Telefone: " ++ telefone cliente ++ "\n" ++
+                      "Idade: " ++ show (idade cliente) ++ "\n" ++
+                      "Sexo: " ++ sexo cliente ++ "\n" ++
+                      "Estado Civíl: " ++ estadoCivil cliente ++ "\n"
+
+        -- Detalhes do seguro do cliente.
+        nivelcliente = nivelCliente cliente
+        infoNivel = "Nível de Cliente: " ++ show (nivelCliente cliente) ++ "\n" ++
+                    "Tipo de Contrato: " ++ tipoContrato seguro ++ "\n" ++
+                    "Status Financeiro: " ++ pagamentoEmDia (statusFinanceiro cliente) ++ "\n" ++
+                    "Tipo de automóvel: " ++ tipoAutomovel cliente ++ "\n"
+
+        -- Detalhes do histórico de sinistros
+        infoSinistros = "Sinistros Registrados: " ++ show (numSinistros cliente) ++ "\n" ++
+                        "Detalhes dos Sinistros: \n" ++ intercalate "\n" (map formatarSinistro sinistros)
+    in
+        -- Combinando as duas partes do relatório.
+        infoCliente ++ "\n" ++ infoNivel ++ "\n" ++ infoSinistros

@@ -15,7 +15,14 @@ data Cliente = Cliente {
     numSinistrosCliente :: Int,
     nivelCliente :: Int,
     tipoAutomovelCliente :: String,
-    veiculoCliente :: String
+    veiculoCliente :: Veiculo
+} deriving (Show, Eq)
+
+data Veiculo = Veiculo {
+    modeloVeiculo :: String,
+    anoVeiculo :: String,
+    tipoVeiculo :: String,
+    placaVeiculo :: String
 } deriving (Show, Eq)
 
 data Seguro = Seguro {
