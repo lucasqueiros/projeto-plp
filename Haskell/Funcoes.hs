@@ -109,7 +109,7 @@ editarClienteMain = do
                     putStrLn "Digite o novo ano do automóvel:"
                     novoAnoStr <- getLine
                     let novoAno = read novoAnoStr :: Int
-                    let novoAutomovel = automovel { anoVeiculo = novoAno }
+                    let novoAutomovel = Veiculo { anoVeiculo = show novoAno }
                     return cliente { veiculoCliente = novoAutomovel }
                 "7" -> do
                     putStrLn "Digite a nova placa do automóvel:"
@@ -137,7 +137,7 @@ atualizarCliente cpfAtualizado novoCliente = do
         length conteudo `seq` return conteudo)  -- Força a avaliação completa do conteúdo
 
     let linhas = lines conteudo
-        novaLinha = clienteToString novoCliente ++ " | " ++ automovelToString (veiculo novoCliente)
+        novaLinha = clienteToString novoCliente ++ " | " ++ automovelToString (veiculoCliente novoCliente)
         linhasAtualizadas = map (\linha -> if cpfAtualizado `isInfixOf` linha then novaLinha else linha) linhas
     
     -- Escreve o conteúdo atualizado de volta ao arquivo
@@ -161,11 +161,11 @@ listarClientes = do
 -- Função auxiliar para formatar os dados de um cliente e seu automóvel em uma linha de tabela
 formatarCliente :: (Cliente, Veiculo) -> String
 formatarCliente (cliente, automovel) =
-    let nomeCliente = take 22 $ nomeCliente cliente ++ replicate 22 ' '
-        modeloCarro = take 18 $ modeloVeiculo veiculo ++ replicate 18 ' '
-        placaCarro = take 15 $ placaVeiculo veiculo ++ replicate 15 ' '
-        nivelClienteStr = take 10 $ show (nivelClienteCliente cliente) ++ replicate 10 ' '
-    in "| " ++ nomeCliente ++ " | " ++ modeloCarro ++ " | " ++ placaCarro ++ " | " ++ nivelClienteStr ++ " |"
+    let nomeClienteFormatado = take 22 $ nomeCliente cliente ++ replicate 22 ' '
+        modeloCarroFormatado = take 18 $ modeloVeiculo automovel ++ replicate 18 ' '
+        placaCarroFormatado = take 15 $ placaVeiculo automovel ++ replicate 15 ' '
+        nivelClienteStrFormatado = take 10 $ show (nivelClienteCliente cliente) ++ replicate 10 ' '
+    in "| " ++ nomeClienteFormatado ++ " | " ++ modeloCarroFormatado ++ " | " ++ placaCarroFormatado ++ " | " ++ nivelClienteStrFormatado ++ " |"
 
 -- Função que recebe todos os dados do cliente e instancia um tipo Cliente
 cadastrarCliente :: String -> String -> String -> String -> Int -> String -> Int -> String -> String -> Int -> (Cliente, Veiculo)
@@ -200,7 +200,7 @@ buscarClienteEAutomovel cpfEntrada placaEntrada = do
         placaEntradaTrim = filter (/= ' ') placaEntrada
     let linhas = lines conteudo
         clienteAutomovel = map parseLine linhas
-        clienteEncontrado = find (\(cliente, automovel) -> filter (/= ' ') (cpfCliente cliente) == cpfEntradaTrim || filter (/= ' ') (placaVeiculo veiculo) == placaEntradaTrim) clienteAutomovel
+        clienteEncontrado = find (\(cliente, automovel) -> filter (/= ' ') (cpfCliente cliente) == cpfEntradaTrim || filter (/= ' ') (placaVeiculo automovel) == placaEntradaTrim) clienteAutomovel
     case clienteEncontrado of
         Just (cliente, automovel) -> return (Just cliente, Just automovel)
         Nothing -> return (Nothing, Nothing)
