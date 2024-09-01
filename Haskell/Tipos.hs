@@ -1,36 +1,36 @@
 module Tipos where
 
 data Cliente = Cliente {
-    cpf :: String
-    nome :: String
-    nivelCliente :: Int --varia entre 1 e 5, o default é 2
-    sexo :: String
-    idade :: Int
-    estadoCivil :: String
-    nivelDeRisco :: Float 
-    telefone :: String
-    listaSeguros :: [Seguro] -- é pra ser uma lista, nao sei como implementar ainda
-    statusFinanceiro :: Bool --true se tiver em dia com o pagamento
-    tempoFidelidade :: Int -- em meses
-    numSinistros :: Int
-    nivel :: Int
-    tipoAutomovel :: String
-    veiculo :: Automovel
+    cpfCliente :: String,
+    nomeCliente :: String,
+    nivelClienteCliente :: Int, --varia entre 1 e 5, o default é 2
+    sexoCliente :: String,
+    idadeCliente :: Int,
+    estadoCivilCliente :: String,
+    nivelDeRiscoCliente :: Float,
+    telefoneCliente :: String,
+    listaSegurosCliente :: [Seguro], -- é pra ser uma lista, nao sei como implementar ainda
+    statusFinanceiroCliente :: Bool, --true se tiver em dia com o pagamento
+    tempoFidelidadeCliente :: Int, -- em meses
+    numSinistrosCliente :: Int,
+    nivelCliente :: Int,
+    tipoAutomovelCliente :: String,
+    veiculoCliente :: String
 } deriving (Show, Eq)
 
 data Seguro = Seguro {
-    idSeguro :: String
-    cpfCliente :: String
-    automovel :: String
-    tipoAutomovel :: String
-    tipoContrato :: String --basico, tradicional ou premium
+    idSeguroSeguro :: String,
+    cpfClienteSeguro :: String,
+    automovelSeguro :: String,
+    tipoAutomovelSeguro :: String,
+    tipoContratoSeguro :: String --basico, tradicional ou premium
 } deriving (Show, Eq)
 
 data Sinistro = Sinistro {
-    idSinistro :: String
-    cpfCliente :: String
-    idSeguro :: String
-    nivelAcidente :: String --leve, médio ou perca total
-    custo :: Float -- vai ser calculado com base em variaveis
-    data :: String
+    idSinistroSinistro :: String,
+    cpfClienteSinistro :: String,
+    idSeguroSinistro :: String,
+    nivelAcidenteSinistro :: String, --leve, médio ou perca total
+    custoSinistro :: Float, -- vai ser calculado com base em variaveis
+    dataSinistro :: String
 } deriving (Show, Eq)
