@@ -1,6 +1,9 @@
 module Menu (menu) where
 
-import Funcoes
+import Utils
+import Cliente
+import Seguro
+import Sinistro
 
 --Modulo com todos os menus de interação com o usuario
 

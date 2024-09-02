@@ -2,11 +2,12 @@ module Seguro where
 
 import Tipos
 import Utils
+import Data.Time
 
 -- Função para cadastrar um seguro
 cadastrarSeguroMain :: IO ()
 cadastrarSeguroMain = do
-    cpf <- solicitarCpf
+    cpf <- Utils.solicitarCpf
     clienteMaybe <- buscarCpfRegistrado cpf
 
     case clienteMaybe of
@@ -23,8 +24,8 @@ cadastrarSeguroMain = do
                     valorSeguroStr <- getLine
                     let valorSeguro = read valorSeguroStr :: Float
                     putStrLn "Digite a placa do veículo a ser assegurado:"
-                    placa <- solicitarPlacaMercosul
-                    automovelMaybe <- buscarPlacaRegistrada placa
+                    placa <-Utils.solicitarPlacaMercosul
+                    automovelMaybe <-Utils.buscarPlacaRegistrada placa
                     
                     case automovelMaybe of
                         Nothing -> putStrLn "Automóvel não encontrado. Certifique-se de que o veículo esteja cadastrado."

@@ -5,9 +5,8 @@ import Data.Time (Day, getCurrentTime, utctDay, parseTimeOrError, defaultTimeLoc
 import Data.Char (isDigit, isAlpha)
 import Data.Time (Day, getCurrentTime, utctDay, toGregorian)
 import Data.Time.Format (parseTimeOrError, defaultTimeLocale)
-import Cliente
-import Veiculo
-import Sinistro
+import Tipos
+
 
 
 -- Função auxiliar para calcular a idade com base na data de nascimento

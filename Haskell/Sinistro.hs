@@ -1,5 +1,7 @@
 module Sinistro where
 
+import Tipos
+import Utils
 import Data.Time (Day, getCurrentTime, utctDay, parseTimeOrError, defaultTimeLocale, toGregorian)
 
 
@@ -34,7 +36,7 @@ cadastrarSinistro idS cpfS idSegS nivelA custoS dataS = do
 encerrarSinistro :: String -> IO ()
 encerrarSinistro idS = do
     conteudo <- readFile "dados/sinistros.txt"
-    let sinistros = map parseSinistro (lines conteudo)
+    let sinistros = map Utils.parseSinistro (lines conteudo)
         sinistrosAtualizados = map (\s -> if idSinistro s == idS then s {ativoSinistro = False} else s) sinistros
     writeFile "dados/sinistros.txt" (unlines (map show sinistrosAtualizados))
     putStrLn "Sinistro encerrado com sucesso."
@@ -43,6 +45,6 @@ encerrarSinistro idS = do
 listarSinistrosAtivos :: IO ()
 listarSinistrosAtivos = do
     conteudo <- readFile "dados/sinistros.txt"
-    let sinistros = map parseSinistro (lines conteudo) :: [Sinistro]
+    let sinistros = map Utils.parseSinistro (lines conteudo) :: [Sinistro]
         sinistrosAtivos = filter ativoSinistro sinistros
     mapM_ (putStrLn . show) sinistrosAtivos

@@ -1,15 +1,16 @@
 -- Modulo contendo todas as funções relativas ao cliente
 module Cliente where
 
-import Utils
+
 import Data.Time
 import System.IO
+import Utils
 
 -- Função auxiliar para cadastro de cliente
 cadastrarClienteMain :: IO ()
 cadastrarClienteMain = do
-    cpf <- solicitarCpf
-    clienteExistente <- buscarCpfRegistrado cpf
+    cpf <-Utils.solicitarCpf
+    clienteExistente <- Utils.buscarCpfRegistrado cpf
 
     case clienteExistente of
         Just cliente -> do
@@ -25,7 +26,7 @@ cadastrarClienteMain = do
             putStrLn "Digite a data de nascimento do cliente (formato: YYYY-MM-DD):"
             dataNascimentoStr <- getLine
             let dataNascimento = read dataNascimentoStr :: Day
-            idade <- calcularIdade dataNascimento
+            idade <- Utils.calcularIdade dataNascimento
             putStrLn "Digite o modelo do automóvel:"
             modelo <- getLine
             putStrLn "Digite o ano do automóvel:"
@@ -33,7 +34,7 @@ cadastrarClienteMain = do
             let ano = read anoStr :: Int
             putStrLn "Digite o tipo do veículo (Carro ou Moto):"
             tipoVeiculo <- getLine
-            placa <- solicitarPlacaMercosul
+            placa <- Utils.solicitarPlacaMercosul
             placaExistente <- buscarPlacaRegistrada placa
 
             case placaExistente of
@@ -47,7 +48,7 @@ cadastrarClienteMain = do
 -- Função para editar um cliente existente
 editarClienteMain :: IO ()
 editarClienteMain = do
-    cpf <- solicitarCpf
+    cpf <- Utils.solicitarCpf
     clienteExistente <- buscarClienteEAutomovel cpf ""
 
     case clienteExistente of
@@ -72,7 +73,7 @@ editarClienteMain = do
                     novoNome <- getLine
                     return cliente { nomeCliente = novoNome }
                 "2" -> do
-                    novoTelefone <- solicitarTelefone
+                    novoTelefone <- Utils.solicitarTelefone
                     return cliente { telefoneCliente = novoTelefone }
                 "3" -> do
                     putStrLn "Digite o novo sexo:"
