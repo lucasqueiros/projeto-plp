@@ -1,4 +1,9 @@
-module Funcoes where
+module Funcoes (
+    cadastrarClienteMain,
+    editarClienteMain,
+    cadastrarSeguroMain,
+    listarClientes
+) where
 
 import Control.Concurrent (threadDelay)
 import Tipos
@@ -8,6 +13,106 @@ import Data.Time (Day, getCurrentTime, utctDay, parseTimeOrError, defaultTimeLoc
 import Data.Char (isDigit, isAlpha)
 import Data.Char (toLower)
 import Data.List (intercalate)
+import Data.Char (isDigit, isAlpha)
+import Data.Maybe (isNothing, fromJust)
+
+
+-- Função auxiliar para calcular a idade com base na data de nascimento
+calcularIdade :: Day -> IO Int
+calcularIdade dataNascimento = do
+    dataAtual <- getCurrentTime
+    let (anoAtual, mesAtual, diaAtual) = toGregorian (utctDay dataAtual)
+        (anoNasc, mesNasc, diaNasc) = toGregorian dataNascimento
+        idade = fromInteger (anoAtual - anoNasc) - if (mesAtual, diaAtual) < (mesNasc, diaNasc) then 1 else 0
+    return idade
+
+-- Função para validar se o CPF tem exatamente 11 dígitos
+validarCpf :: String -> Bool
+validarCpf cpf = length cpf == 11 && all isDigit cpf
+
+
+
+-- Função para buscar se o CPF já está registrado
+buscarCpfRegistrado :: String -> IO (Maybe Cliente)
+buscarCpfRegistrado cpfEntrada = do
+    (clienteMaybe, _) <- buscarClienteEAutomovel cpfEntrada ""
+    return clienteMaybe
+
+-- Função para buscar se a placa já está registrada
+buscarPlacaRegistrada :: String -> IO (Maybe Veiculo)
+buscarPlacaRegistrada placaEntrada = do
+    (_, automovelMaybe) <- buscarClienteEAutomovel "" placaEntrada
+    return automovelMaybe
+-- Função auxiliar para cadastro de cliente
+cadastrarClienteMain :: IO ()
+cadastrarClienteMain = do
+    cpf <- solicitarCpf
+    clienteExistente <- buscarCpfRegistrado cpf
+
+    case clienteExistente of
+        Just cliente -> do
+            putStrLn $ "Cliente encontrado! Nome: " ++ nomeCliente cliente
+            putStrLn "Cadastramento encerrado."
+        Nothing -> do
+            putStrLn "CPF não registrado. Prosseguindo com o cadastro..."
+            putStrLn "Digite o nome do cliente:"
+            nome <- getLine
+            telefone <- solicitarTelefone
+            putStrLn "Digite o sexo do cliente:"
+            sexo <- getLine
+            putStrLn "Digite a data de nascimento do cliente (formato: YYYY-MM-DD):"
+            dataNascimentoStr <- getLine
+            let dataNascimento = read dataNascimentoStr :: Day
+            idade <- calcularIdade dataNascimento
+            putStrLn "Digite o modelo do automóvel:"
+            modelo <- getLine
+            putStrLn "Digite o ano do automóvel:"
+            anoStr <- getLine
+            let ano = read anoStr :: Int
+            putStrLn "Digite o tipo do veículo (Carro ou Moto):"
+            tipoVeiculo <- getLine
+            placa <- solicitarPlacaMercosul
+            placaExistente <- buscarPlacaRegistrada placa
+
+            case placaExistente of
+                Just _ -> putStrLn "Placa já registrada. Cadastramento encerrado."
+                Nothing -> do
+                    let nivelCliente = 2
+                    let (cliente, automovel) = cadastrarCliente nome cpf telefone sexo idade modelo ano placa tipoVeiculo nivelCliente
+                    salvarCliente cliente automovel
+                    putStrLn "\nCliente cadastrado com sucesso!"
+                    
+
+-- Função para cadastrar um seguro
+cadastrarSeguroMain :: IO ()
+cadastrarSeguroMain = do
+    cpf <- solicitarCpf
+    clienteMaybe <- buscarCpfRegistrado cpf
+
+    case clienteMaybe of
+        Nothing -> putStrLn "Cliente não encontrado. Realize o cadastro do cliente primeiro."
+        Just cliente -> do
+            putStrLn "Digite o nome do cliente:"
+            nomeInput <- getLine
+            if nomeCliente cliente /= nomeInput
+                then putStrLn "Cadastramento impossibilitado! Nome não corresponde ao CPF."
+                else do
+                    putStrLn "Digite o tipo de contrato (Básico, Tradicional, Premium):"
+                    tipoContrato <- getLine
+                    putStrLn "Digite o valor do seguro:"
+                    valorSeguroStr <- getLine
+                    let valorSeguro = read valorSeguroStr :: Float
+                    putStrLn "Digite a placa do veículo a ser assegurado:"
+                    placa <- solicitarPlacaMercosul
+                    automovelMaybe <- buscarPlacaRegistrada placa
+                    
+                    case automovelMaybe of
+                        Nothing -> putStrLn "Automóvel não encontrado. Certifique-se de que o veículo esteja cadastrado."
+                        Just automovel -> do
+                            seguro <- criarSeguro cliente automovel tipoContrato valorSeguro
+                            salvarSeguro seguro
+                            putStrLn "\nSeguro criado com sucesso:"
+                            print seguro
 
 -- Função para validar se a placa está no padrão Mercosul
 validarPlacaMercosul :: String -> Bool
@@ -103,13 +208,13 @@ editarClienteMain = do
                 "5" -> do
                     putStrLn "Digite o novo modelo do automóvel:"
                     novoModelo <- getLine
-                    let novoAutomovel = Veiculo { modeloVeiculo = novoModelo }
+                    let novoAutomovel = Veiculo { modeloVeiculo = novoModelo, anoVeiculo = anoVeiculo automovel, tipoVeiculo = tipoVeiculo automovel, placaVeiculo = placaVeiculo automovel }
                     return cliente { veiculoCliente = novoAutomovel }
                 "6" -> do
                     putStrLn "Digite o novo ano do automóvel:"
                     novoAnoStr <- getLine
                     let novoAno = read novoAnoStr :: Int
-                    let novoAutomovel = Veiculo { anoVeiculo = show novoAno }
+                    let novoAutomovel = automovel { anoVeiculo = novoAno }
                     return cliente { veiculoCliente = novoAutomovel }
                 "7" -> do
                     putStrLn "Digite a nova placa do automóvel:"
@@ -164,15 +269,16 @@ formatarCliente (cliente, automovel) =
     let nomeClienteFormatado = take 22 $ nomeCliente cliente ++ replicate 22 ' '
         modeloCarroFormatado = take 18 $ modeloVeiculo automovel ++ replicate 18 ' '
         placaCarroFormatado = take 15 $ placaVeiculo automovel ++ replicate 15 ' '
-        nivelClienteStrFormatado = take 10 $ show (nivelClienteCliente cliente) ++ replicate 10 ' '
+        nivelClienteStrFormatado = take 10 $ show (nivelCliente cliente) ++ replicate 10 ' '
     in "| " ++ nomeClienteFormatado ++ " | " ++ modeloCarroFormatado ++ " | " ++ placaCarroFormatado ++ " | " ++ nivelClienteStrFormatado ++ " |"
 
 -- Função que recebe todos os dados do cliente e instancia um tipo Cliente
 cadastrarCliente :: String -> String -> String -> String -> Int -> String -> Int -> String -> String -> Int -> (Cliente, Veiculo)
-cadastrarCliente nome' cpf' telefone' sexo' idade' modelo' ano' placa' tipoAutomovel' nivelCliente' =
-    let cliente = Cliente nome' cpf' telefone' sexo' idade' nivelCliente' (Veiculo modelo' ano' placa' tipoAutomovel')
-        automovel = veiculo cliente
-    in (cliente, automovel)
+cadastrarCliente nome cpf telefone sexo idade modelo ano placa tipoVeiculo nivelCliente =
+    let veiculo = Veiculo modelo ano tipoVeiculo placa
+        cliente = Cliente cpf nome telefone sexo idade "" nivelCliente True 0 0 veiculo
+    in (cliente, veiculo)
+
 
 -- Função para salvar o cliente em um arquivo de texto
 salvarCliente :: Cliente -> Veiculo -> IO ()
@@ -184,13 +290,13 @@ salvarCliente cliente automovel = do
 
 -- Função para converter Cliente para String
 clienteToString :: Cliente -> String
-clienteToString (Cliente nomeCliente cpfCliente telefoneCliente sexoCliente idadeCliente _ _) =
+clienteToString (Cliente cpf nome telefone sexo idade _ nivelCliente _ _ _ veiculo) =
     "Cliente {nome = \"" ++ nome ++ "\", cpf = \"" ++ cpf ++ "\", telefone = \"" ++ telefone ++ "\", sexo = \"" ++ sexo ++ "\", idade = " ++ show idade ++ "}"
 
 -- Função para converter Automovel para String
 automovelToString :: Veiculo -> String
-automovelToString (Veiculo modelo ano placa tipoAutomovelCliente) =
-    "Automovel {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", placa = \"" ++ placa ++ "\", tipoVeiculo = \"" ++ tipoVeiculo ++ "\"}"
+automovelToString (Veiculo modelo ano placa tipoVeiculo) =
+    "Veiculo {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", placa = \"" ++ placa ++ "\", tipoVeiculo = \"" ++ tipoVeiculo ++ "\"}"
 
 -- Função para buscar cliente e automóvel por CPF e placa
 buscarClienteEAutomovel :: String -> String -> IO (Maybe Cliente, Maybe Veiculo)
@@ -222,7 +328,7 @@ parseCliente str =
         telefone = removeQuotes $ extractValue "telefone" (campos !! 2)
         sexo = removeQuotes $ extractValue "sexo" (campos !! 3)
         idade = read $ extractValue "idade" (campos !! 4) :: Int
-    in Cliente nome cpf telefone sexo idade 2 (Veiculo "" 0 "" "")
+    in Cliente cpf nome telefone sexo idade "" 2 True 0 0 (Veiculo "" 0 "" "")
 
 -- Função auxiliar que faz parsing manual do automóvel
 parseAutomovel :: String -> Veiculo
@@ -232,7 +338,20 @@ parseAutomovel str =
         ano = read $ extractValue "ano" (campos !! 1) :: Int
         placa = removeQuotes $ extractValue "placa" (campos !! 2)
         tipoAutomovel = removeQuotes $ extractValue "tipoAutomovel" (campos !! 3)
-    in Veiculo modeloVeiculo anoVeiculo placaVeiculo tipoveiculo
+    in Veiculo modelo ano placa tipoAutomovel
+
+parseSinistro :: String -> Sinistro
+parseSinistro str = 
+    let fields = split ',' str
+    in Sinistro 
+        (fields !! 0)             -- idSinistro
+        (fields !! 1)             -- cpfClienteSinistro
+        (fields !! 2)             -- idSeguroSinistro
+        (fields !! 3)             -- nivelAcidente
+        (read (fields !! 4))      -- custoSinistro (convertendo de String para Float)
+        (read (fields !! 5))      -- dataSinistro (convertendo de String para Day)
+        (read (fields !! 6))      -- ativoSinistro (convertendo de String para Bool)
+
 
 -- Função auxiliar para remover a parte "Cliente {...}" ou "Automovel {...}" e deixar apenas os valores internos
 removeWrapper :: String -> String -> String
@@ -248,11 +367,12 @@ extractValue campo str = drop (length campo + 4) str  -- Remove "campo = "
 
 -- Função para criar um seguro e salvar no arquivo
 criarSeguro :: Cliente -> Veiculo -> String -> Float -> IO Seguro
-criarSeguro cliente automovel tipoContrato valorSeguro = do
+criarSeguro cliente veiculo tipoContrato valorSeguro = do
     dataAtual <- utctDay <$> getCurrentTime
-    let seguro = Seguro cpfClienteSeguro automovelSeguro tipoContratoSeguro valorContratoSeguro dataAtual
+    let seguro = Seguro cliente veiculo tipoContrato valorSeguro dataAtual
     salvarSeguro seguro
     return seguro
+
 
 -- Função para salvar o seguro em um arquivo de texto
 salvarSeguro :: Seguro -> IO ()
@@ -263,8 +383,8 @@ salvarSeguro seguro = do
 
 -- Função para converter Seguro para String
 seguroToString :: Seguro -> String
-seguroToString (Seguro cliente automovel contratoTipo valorSeguro dataEmissao) =
-    clienteToString cliente ++ " | " ++ automovelToString automovel ++ ", contratoTipo = \"" ++ contratoTipo ++ "\", valorSeguro = " ++ show valorSeguro ++ ", dataEmissao = " ++ show dataEmissao
+seguroToString (Seguro cliente veiculo contratoTipo valorSeguro dataEmissao) =
+    clienteToString cliente ++ " | " ++ automovelToString veiculo ++ ", contratoTipo = \"" ++ contratoTipo ++ "\", valorSeguro = " ++ show valorSeguro ++ ", dataEmissao = " ++ show dataEmissao
 
 -- Função para dividir uma string por um delimitador
 split :: Char -> String -> [String]
@@ -315,16 +435,16 @@ limparTela = ""
 --cadastrarSinistro
 cadastrarSinistro :: String -> String -> String -> String -> Float -> String -> IO ()
 cadastrarSinistro idS cpfS idSegS nivelA custoS dataS = do
-    let sinistro = Sinistro idS cpfS idSegS nivelA custoS dataS True
+    let sinistro = Sinistro idS cpfS idSegS nivelA custoS (read dataS :: Day) True
     appendFile "dados/sinistros.txt" (show sinistro ++ "\n")
     putStrLn "Sinistro cadastrado com sucesso."
 
---encerrarSinistro
+-- Função encerrarSinistro após a modificação
 encerrarSinistro :: String -> IO ()
 encerrarSinistro idS = do
     conteudo <- readFile "dados/sinistros.txt"
-    let sinistros = map read (lines conteudo) :: [Sinistro]
-        sinistrosAtualizados = map (\s -> if idSinistroSinistro s == idS then s {ativoSinistro = False} else s) sinistros
+    let sinistros = map parseSinistro (lines conteudo)
+        sinistrosAtualizados = map (\s -> if idSinistro s == idS then s {ativoSinistro = False} else s) sinistros
     writeFile "dados/sinistros.txt" (unlines (map show sinistrosAtualizados))
     putStrLn "Sinistro encerrado com sucesso."
 
@@ -332,7 +452,7 @@ encerrarSinistro idS = do
 listarSinistrosAtivos :: IO ()
 listarSinistrosAtivos = do
     conteudo <- readFile "dados/sinistros.txt"
-    let sinistros = map read (lines conteudo) :: [Sinistro]
+    let sinistros = map parseSinistro (lines conteudo) :: [Sinistro]
         sinistrosAtivos = filter ativoSinistro sinistros
     mapM_ (putStrLn . show) sinistrosAtivos
 
@@ -391,28 +511,27 @@ pagamentoEmDia status =
 -- Função para formatar um Sinistro como uma String
 formatarSinistro :: Sinistro -> String
 formatarSinistro sinistro =
-    intercalate " | " [idSinistroSinistro sinistro, nivelAcidenteSinistro sinistro, show (custoSinistro sinistro), dataSinistro sinistro] -- troquei 'data' por 'dataSinistro' pq tava dando conflito
+    intercalate " | " [idSinistro sinistro, nivelAcidente sinistro, show (custoSinistro sinistro), show (dataSinistro sinistro)]
 
 
 -- Função que gera um relatório com com informações acerca de um cliente registrado.
 gerarRelatorio :: Cliente -> [Sinistro] -> String
 gerarRelatorio cliente sinistros =
     let
-        seguro = listaSegurosCliente cliente
+        seguro = head (listaSegurosCliente cliente)
         -- Informações pessoais do cliente e de seu automóvel.
         infoCliente = "Nome: " ++ nomeCliente cliente ++ "\n" ++
                       "CPF: " ++ cpfCliente cliente ++ "\n" ++
                       "Telefone: " ++ telefoneCliente cliente ++ "\n" ++
                       "Idade: " ++ show (idadeCliente cliente) ++ "\n" ++
                       "Sexo: " ++ sexoCliente cliente ++ "\n" ++
-                      "Estado Civíl: " ++ estadoCivilCliente cliente ++ "\n"
+                      "Estado Civil: " ++ estadoCivilCliente cliente ++ "\n"
 
         -- Detalhes do seguro do cliente. 
-        nivelcliente = nivelCliente cliente
-        infoNivel = "Nível de Cliente: " ++ show (nivelClienteCliente cliente) ++ "\n" ++
-                    "Tipo de Contrato: " ++ tipoContratoSeguro (head seguro) ++ "\n" ++
+        infoNivel = "Nível de Cliente: " ++ show (nivelCliente cliente) ++ "\n" ++
+                    "Tipo de Contrato: " ++ tipoContratoSeguro seguro ++ "\n" ++
                     "Status Financeiro: " ++ pagamentoEmDia (statusFinanceiroCliente cliente) ++ "\n" ++
-                    "Tipo de automóvel: " ++ tipoAutomovelCliente cliente ++ "\n"
+                    "Tipo de automóvel: " ++ tipoVeiculo (veiculoCliente cliente) ++ "\n"
 
         -- Detalhes do histórico de sinistros
         infoSinistros = "Sinistros Registrados: " ++ show (numSinistrosCliente cliente) ++ "\n" ++
@@ -420,3 +539,7 @@ gerarRelatorio cliente sinistros =
     in
         -- Combinando as duas partes do relatório.
         infoCliente ++ "\n" ++ infoNivel ++ "\n" ++ infoSinistros
+
+-- Lista vazia de seguros para o cliente (corrigido)
+listaSegurosCliente :: Cliente -> [Seguro]
+listaSegurosCliente _ = []
