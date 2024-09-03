@@ -52,7 +52,9 @@ menuCliente = do
     opcao <- getLine
     case opcao of
         "1" -> putStrLn "teste"
-        "2" -> putStrLn "teste"
+        "2" -> do
+                Funcoes.mostrarStatusPagamento
+                menuCliente
         "0" -> menu
         _   -> do
             putStrLn "Opção inválida!"
@@ -69,10 +71,19 @@ crudCliente = do
     putStrLn "0. Voltar"
     opcao <- getLine
     case opcao of
-        "1" -> Funcoes.cadastrarClienteMain --chama funcao
-        "2" -> Funcoes.editarClienteMain --chama funcao
-        "3" -> Funcoes.listarClientes --chama funcao
-        "4" -> putStrLn "teste" --chama funcao
+        "1" -> do
+                Funcoes.cadastrarClienteMain --chama funcao
+                crudCliente
+        "2" -> do 
+                Funcoes.editarClienteMain --chama funcao
+                crudCliente
+        "3" -> do
+                Funcoes.listarClientes --chama funcao
+                crudCliente
+        "4" -> do
+                putStrLn "teste" --chama funcao
+                crudCliente
+
         "0" -> menu
 
 --Menu do gerenciamento de seguros
