@@ -266,11 +266,15 @@ listarClientes = do
 -- Função auxiliar para formatar os dados de um cliente e seu automóvel em uma linha de tabela
 formatarCliente :: (Cliente, Veiculo) -> String
 formatarCliente (cliente, automovel) =
-    let nomeClienteFormatado = take 22 $ nomeCliente cliente ++ replicate 22 ' '
-        modeloCarroFormatado = take 18 $ modeloVeiculo automovel ++ replicate 18 ' '
-        placaCarroFormatado = take 15 $ placaVeiculo automovel ++ replicate 15 ' '
-        nivelClienteStrFormatado = take 10 $ show (nivelCliente cliente) ++ replicate 10 ' '
+    let nomeClienteFormatado = take 22 $ padRight 22 (nomeCliente cliente)
+        modeloCarroFormatado = take 18 $ padRight 18 (modeloVeiculo automovel)
+        placaCarroFormatado = take 15 $ padRight 15 (placaVeiculo automovel)
+        nivelClienteStrFormatado = take 10 $ padRight 10 (show (nivelCliente cliente))
     in "| " ++ nomeClienteFormatado ++ " | " ++ modeloCarroFormatado ++ " | " ++ placaCarroFormatado ++ " | " ++ nivelClienteStrFormatado ++ " |"
+
+-- Função auxiliar para preencher uma string com espaços à direita até um determinado comprimento
+padRight :: Int -> String -> String
+padRight n str = str ++ replicate (n - length str) ' '
 
 -- Função que recebe todos os dados do cliente e instancia um tipo Cliente
 cadastrarCliente :: String -> String -> String -> String -> Int -> String -> Int -> String -> String -> Int -> (Cliente, Veiculo)
@@ -295,8 +299,8 @@ clienteToString (Cliente cpf nome telefone sexo idade _ nivelCliente _ _ _ veicu
 
 -- Função para converter Automovel para String
 automovelToString :: Veiculo -> String
-automovelToString (Veiculo modelo ano placa tipoVeiculo) =
-    "Veiculo {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", placa = \"" ++ placa ++ "\", tipoVeiculo = \"" ++ tipoVeiculo ++ "\"}"
+automovelToString (Veiculo modelo ano tipoVeiculo placa) =
+    "Veiculo {modelo = \"" ++ modelo ++ "\", ano = " ++ show ano ++ ", tipoVeiculo = \"" ++ tipoVeiculo ++ "\", placa = \"" ++ placa ++ "\"}"
 
 -- Função para buscar cliente e automóvel por CPF e placa
 buscarClienteEAutomovel :: String -> String -> IO (Maybe Cliente, Maybe Veiculo)
@@ -319,26 +323,33 @@ parseLine linha =
         automovel = parseAutomovel (tail automovelStr)
     in (cliente, automovel)
 
--- Função auxiliar que faz parsing manual do cliente
+-- Função auxiliar para acessar um elemento de uma lista de forma segura
+safeIndex :: [a] -> Int -> Maybe a
+safeIndex xs i
+    | i < 0 || i >= length xs = Nothing
+    | otherwise = Just (xs !! i)
+
+-- Parsing manual do cliente com extração adequada
 parseCliente :: String -> Cliente
 parseCliente str =
     let campos = split ',' (removeWrapper "Cliente" str)
-        nome = removeQuotes $ extractValue "nome" (campos !! 0)
-        cpf = removeQuotes $ extractValue "cpf" (campos !! 1)
-        telefone = removeQuotes $ extractValue "telefone" (campos !! 2)
-        sexo = removeQuotes $ extractValue "sexo" (campos !! 3)
-        idade = read $ extractValue "idade" (campos !! 4) :: Int
+        nome = removeQuotes (extractValue "nome" (campos !! 0))
+        cpf = removeQuotes (extractValue "cpf" (campos !! 1))
+        telefone = removeQuotes (extractValue "telefone" (campos !! 2))
+        sexo = removeQuotes (extractValue "sexo" (campos !! 3))
+        idade = read (extractValue "idade" (campos !! 4)) :: Int
     in Cliente cpf nome telefone sexo idade "" 2 True 0 0 (Veiculo "" 0 "" "")
 
--- Função auxiliar que faz parsing manual do automóvel
+-- Parsing manual do automóvel com extração adequada
 parseAutomovel :: String -> Veiculo
 parseAutomovel str =
-    let campos = split ',' (removeWrapper "Automovel" str)
+    let campos = split ',' (removeWrapper "Veiculo" str)
         modelo = removeQuotes $ extractValue "modelo" (campos !! 0)
         ano = read $ extractValue "ano" (campos !! 1) :: Int
-        placa = removeQuotes $ extractValue "placa" (campos !! 2)
-        tipoAutomovel = removeQuotes $ extractValue "tipoAutomovel" (campos !! 3)
-    in Veiculo modelo ano placa tipoAutomovel
+        tipoVeiculo = removeQuotes $ extractValue "tipoVeiculo" (campos !! 2)
+        -- Extrair a placa corretamente, removendo qualquer prefixo extra
+        placa = removeQuotes $ dropWhile (/= '=') (extractValue "placa" (campos !! 3)) 
+    in Veiculo modelo ano tipoVeiculo (drop 2 placa)  -- Remover " = " do início da placa
 
 parseSinistro :: String -> Sinistro
 parseSinistro str = 
@@ -353,9 +364,12 @@ parseSinistro str =
         (read (fields !! 6))      -- ativoSinistro (convertendo de String para Bool)
 
 
--- Função auxiliar para remover a parte "Cliente {...}" ou "Automovel {...}" e deixar apenas os valores internos
+-- Corrigindo a função removeWrapper para remover o wrapper corretamente
 removeWrapper :: String -> String -> String
-removeWrapper wrapper str = take (length str - length wrapper - 3) (drop (length wrapper + 2) str)
+removeWrapper wrapper str = 
+    let start = length wrapper + 2
+        end = length str - 1
+    in if start <= end then take (end - start) (drop start str) else ""
 
 -- Função auxiliar para remover aspas de uma string
 removeQuotes :: String -> String
@@ -363,7 +377,10 @@ removeQuotes = filter (/= '"')
 
 -- Função auxiliar para extrair o valor de um campo no formato "campo = valor"
 extractValue :: String -> String -> String
-extractValue campo str = drop (length campo + 4) str  -- Remove "campo = "
+extractValue campo str =
+    let searchStr = campo ++ " = "
+        rest = drop (length searchStr) str
+    in takeWhile (/= ',') rest
 
 -- Função para criar um seguro e salvar no arquivo
 criarSeguro :: Cliente -> Veiculo -> String -> Float -> IO Seguro
@@ -389,10 +406,11 @@ seguroToString (Seguro cliente veiculo contratoTipo valorSeguro dataEmissao) =
 -- Função para dividir uma string por um delimitador
 split :: Char -> String -> [String]
 split _ "" = []
-split delim s = let (before, remainder) = span (/= delim) s
-                 in before : case remainder of
-                                [] -> []
-                                x -> split delim (tail x)
+split delim s = 
+    let (before, remainder) = span (/= delim) s
+    in before : case remainder of
+        [] -> []
+        x -> split delim (tail x)
 
 -- Função responsável por calcular o nível do cliente, mas sem atualiza-lo no cliente   
 calcularNivelCliente :: Cliente -> Int

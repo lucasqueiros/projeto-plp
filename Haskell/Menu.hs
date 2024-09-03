@@ -7,10 +7,14 @@ import Funcoes
 --Menu Principal
 menu :: IO ()
 menu = do
+    putStrLn "================================================"
+    putStrLn "      Bem vindo ao Sistema de Seguradora Haskell"
+    putStrLn "================================================"
     putStrLn "Escolha uma opção:"
     putStrLn "1. Administrador"
     putStrLn "2. Cliente"
     putStrLn "0. Sair"
+    putStrLn "================================================"
     opcao <- getLine
     case opcao of
         "1" -> menuAdministrador
