@@ -43,6 +43,7 @@ buscarPlacaRegistrada :: String -> IO (Maybe Veiculo)
 buscarPlacaRegistrada placaEntrada = do
     (_, automovelMaybe) <- buscarClienteEAutomovel "" placaEntrada
     return automovelMaybe
+
 -- Função auxiliar para cadastro de cliente
 cadastrarClienteMain :: IO ()
 cadastrarClienteMain = do
@@ -340,16 +341,14 @@ parseCliente str =
         idade = read (extractValue "idade" (campos !! 4)) :: Int
     in Cliente cpf nome telefone sexo idade "" 2 True 0 0 (Veiculo "" 0 "" "")
 
--- Parsing manual do automóvel com extração adequada
 parseAutomovel :: String -> Veiculo
 parseAutomovel str =
     let campos = split ',' (removeWrapper "Veiculo" str)
         modelo = removeQuotes $ extractValue "modelo" (campos !! 0)
         ano = read $ extractValue "ano" (campos !! 1) :: Int
         tipoVeiculo = removeQuotes $ extractValue "tipoVeiculo" (campos !! 2)
-        -- Extrair a placa corretamente, removendo qualquer prefixo extra
-        placa = removeQuotes $ dropWhile (/= '=') (extractValue "placa" (campos !! 3)) 
-    in Veiculo modelo ano tipoVeiculo (drop 2 placa)  -- Remover " = " do início da placa
+        placa = removeQuotes $ extractValue "placa" (campos !! 3)
+    in Veiculo modelo ano tipoVeiculo placa
 
 parseSinistro :: String -> Sinistro
 parseSinistro str = 
