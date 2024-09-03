@@ -523,9 +523,10 @@ sexoRisco sexo
 buscarClientePorCpf :: String -> IO (Maybe Cliente)
 buscarClientePorCpf cpfEntrada = do
     conteudo <- readFile "dados/clientes.txt"
+    let cpfEntradaTrim = filter (/= ' ') cpfEntrada
     let linhas = lines conteudo
         clientes = map parseCliente linhas
-        clienteEncontrado = find (\cliente -> cpfCliente cliente == cpfEntrada) clientes
+        clienteEncontrado = find (\cliente -> filter (/= ' ') (cpfCliente cliente) == cpfEntradaTrim) clientes
     return clienteEncontrado
 --
 

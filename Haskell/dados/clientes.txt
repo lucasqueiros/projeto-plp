@@ -1,7 +1,2 @@
-<<<<<<< HEAD
 Cliente {nome = "Fábio", cpf = "09110296484", telefone = "83988226519", sexo = "Masculino", idade = 20} | Veiculo {modelo = "Sedan", ano = 2024, tipoVeiculo = "Carro", placa = "ABC1D23"}
 Cliente {nome = "Alguem", cpf = "11111111111", telefone = "11111111111", sexo = "Masculino", idade = 22} | Veiculo {modelo = "Sedan", ano = 2004, tipoVeiculo = "Carro", placa = "DEF1D25"}
-=======
-Cliente {nome = "Fábio", cpf = "09110296484", telefone = "83988226519", sexo = "Masculino", idade = 20} | Veiculo {modelo = "Sedan", ano = 2024, placa = "Carro", tipoVeiculo = "ABC1D23"}
-Cliente {nome = "Rossini", cpf = "12345678910", telefone = "81997605854", sexo = "Homem", idade = 789} | Veiculo {modelo = "Sedan", ano = 2020, tipoVeiculo = "Moto", placa = "ABC1D24"}
->>>>>>> 3a10fcb3c77611f922bce6ff6c369be9ef293721
