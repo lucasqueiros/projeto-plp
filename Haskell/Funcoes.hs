@@ -2,7 +2,8 @@ module Funcoes (
     cadastrarClienteMain,
     editarClienteMain,
     cadastrarSeguroMain,
-    listarClientes
+    listarClientes,
+    mostrarStatusPagamento
 ) where
 
 import Control.Concurrent (threadDelay)
@@ -518,6 +519,25 @@ sexoRisco sexo
 
 
 --arquivos funcoes2
+
+-- Função que busca um cliente pelo CPF
+buscarClientePorCpf :: String -> IO (Maybe Cliente)
+buscarClientePorCpf cpfEntrada = do
+    conteudo <- readFile "dados/clientes.txt"
+    let linhas = lines conteudo
+        clientes = map parseCliente linhas
+        clienteEncontrado = find (\cliente -> cpfCliente cliente == cpfEntrada) clientes
+    return clienteEncontrado
+--
+
+-- Função para mostrar o status de pagamento
+mostrarStatusPagamento :: IO ()
+mostrarStatusPagamento = do
+    cpf <- solicitarCpf
+    cliente <- buscarClientePorCpf cpf
+    case cliente of
+        Just c  -> putStrLn $ pagamentoEmDia (statusFinanceiroCliente c)
+        Nothing -> putStrLn "Cliente não encontrado."
 
 -- Função que Verifica o Status Financeiro do Seguro
 pagamentoEmDia :: Bool -> String 

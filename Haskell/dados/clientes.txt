@@ -1,1 +1,2 @@
 Cliente {nome = "Fábio", cpf = "09110296484", telefone = "83988226519", sexo = "Masculino", idade = 20} | Veiculo {modelo = "Sedan", ano = 2024, placa = "Carro", tipoVeiculo = "ABC1D23"}
+Cliente {nome = "Rossini", cpf = "12345678910", telefone = "81997605854", sexo = "Homem", idade = 789} | Veiculo {modelo = "Sedan", ano = 2020, tipoVeiculo = "Moto", placa = "ABC1D24"}
